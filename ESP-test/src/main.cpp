@@ -9,6 +9,7 @@ FirebaseData fdbo;
 FirebaseAuth auth;
 FirebaseConfig config;
 bool signup = false;
+int isPush = 0;
 void setup() {
   // put your setup code here, to run once:
   int ledPin = 13;
@@ -42,5 +43,29 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("Still connected");
-  delay(1000);
+  float N, P, K, ph, temp, hum;
+  putData(N,P,K,ph,temp,hum);
+  delay(20000);
+}
+
+void putData(float N, float P, float K, float ph, float temp, float hum) {
+  try{
+    Firebase.RTDB.setFloat(&fdbo, "main/Nitrogen", N);
+    Firebase.RTDB.setFloat(&fdbo, "main/Phosphorous", P);
+    Firebase.RTDB.setFloat(&fdbo, "main/Potassium", K);
+    Firebase.RTDB.setFloat(&fdbo, "main/pH", ph);
+    Firebase.RTDB.setFloat(&fdbo, "main/Temperature", temp);
+    Firebase.RTDB.setFloat(&fdbo, "main/Humidity", hum);
+    Firebase.RTDB.setBool(&fdbo, "main/isPush", true);
+  }
+  catch(Exception e){
+    Serial.println(e.toString());
+    if(isPush<3){
+      i++;
+    }
+    else{
+      i = 0;
+      Firebase.RTDB.setBool(&fdbo, "main/isPush", false)
+    }
+  }
 }
