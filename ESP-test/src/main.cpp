@@ -114,12 +114,12 @@ float getHumidity(){
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("Still connected");
-  N = 1+random(10);
-  P = 2+random(10);
-  K = 3+random(10);
-  ph = 4+random(10);
-  temp = 5+random(10);
-  hum = 6+random(10);
+  N = getNitrogen();
+  P = getPhosphorus();
+  K = getPotassium();
+  ph = getPh();
+  temp = getTemperature();
+  hum = getHumidity();
   putData(N,P,K,ph,temp,hum);
   delay(1000);
 }
