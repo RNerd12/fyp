@@ -1,8 +1,8 @@
 #include <SD.h>
 #include <ESP8266WiFi.h>
 #include <Firebase_ESP_Client.h>
-#define SSID "tharang_home"
-#define PASS "raj26@KT"
+#define SSID "tharang1"
+#define PASS "12345678"
 #define DB_URL "soilqualitydb-default-rtdb.firebaseio.com/"
 #define API_KEY "AIzaSyDvuhWQSnAJNNcCjMOyuti-t9BPJoz4G1M"
 FirebaseData fdbo;
@@ -10,6 +10,8 @@ FirebaseAuth auth;
 FirebaseConfig config;
 bool signup = false;
 int isPush = 0;
+float N, P, K, ph, temp, hum;
+
 void setup() {
   // put your setup code here, to run once:
   int ledPin = 13;
@@ -27,7 +29,7 @@ void setup() {
   config.api_key = API_KEY;
   config.database_url = DB_URL;
   if(Firebase.signUp(&config,&auth,"","")){
-    Serial.print("ok");
+    Serial.print("firebase connected");
     signup = true;
   }
   else
@@ -36,36 +38,76 @@ void setup() {
   Firebase.reconnectWiFi(true);
   for(int i=0;i<5;i++){
     Firebase.RTDB.setInt(&fdbo, "test/int", i);
-    delay(2000);
+    delay(500);
   }
+}
+
+//Pushes data to Firebase RTDB
+void putData(float N, float P, float K, float ph, float temp, float hum) {
+  Firebase.RTDB.setFloat(&fdbo, "main/Nitrogen", N);
+  Firebase.RTDB.setFloat(&fdbo, "main/Phosphorous", P);
+  Firebase.RTDB.setFloat(&fdbo, "main/Potassium", K);
+  Firebase.RTDB.setFloat(&fdbo, "main/pH", ph);
+  Firebase.RTDB.setFloat(&fdbo, "main/Temperature", temp);
+  Firebase.RTDB.setFloat(&fdbo, "main/Humidity", hum);
+  if(!Firebase.RTDB.setBool(&fdbo, "main/isPush", true)){
+    if(isPush < 3)
+      isPush++;
+    else{
+      isPush = 0;
+      Firebase.RTDB.setBool(&fdbo, "main/isPush", false);
+    }
+  }
+  else
+    Serial.println("pushed to firebase");
+}
+
+float getNitrogen(){
+  float N = 0;
+
+  return N;
+}
+
+float getPhosphorus(){
+  float P = 0;
+
+  return P;
+}
+
+float getPotassium(){
+  float K = 0;
+
+  return K;
+}
+
+float getPh(){
+  float ph = 0;
+
+  return ph;
+}
+
+float getTemperature(){
+  float temp = 0;
+
+  return temp
+}
+
+float getHumidity(){
+  float hum = 0;
+
+  return hum;
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("Still connected");
-  float N, P, K, ph, temp, hum;
+  N = 1+random(10);
+  P = 2+random(10);
+  K = 3+random(10);
+  ph = 4+random(10);
+  temp = 5+random(10);
+  hum = 6+random(10);
   putData(N,P,K,ph,temp,hum);
-  delay(20000);
+  delay(1000);
 }
 
-void putData(float N, float P, float K, float ph, float temp, float hum) {
-  try{
-    Firebase.RTDB.setFloat(&fdbo, "main/Nitrogen", N);
-    Firebase.RTDB.setFloat(&fdbo, "main/Phosphorous", P);
-    Firebase.RTDB.setFloat(&fdbo, "main/Potassium", K);
-    Firebase.RTDB.setFloat(&fdbo, "main/pH", ph);
-    Firebase.RTDB.setFloat(&fdbo, "main/Temperature", temp);
-    Firebase.RTDB.setFloat(&fdbo, "main/Humidity", hum);
-    Firebase.RTDB.setBool(&fdbo, "main/isPush", true);
-  }
-  catch(Exception e){
-    Serial.println(e.toString());
-    if(isPush<3){
-      i++;
-    }
-    else{
-      i = 0;
-      Firebase.RTDB.setBool(&fdbo, "main/isPush", false)
-    }
-  }
-}
