@@ -19,6 +19,8 @@ void setup() {
   digitalWrite(ledPin,LOW);
   Serial.begin(9600);
   Serial.print("Connecting to ");
+  
+  // connecting nodemcu to wifi
   Serial.println(SSID);
   WiFi.begin(SSID,PASS);
   while(WiFi.status() != WL_CONNECTED){
@@ -26,6 +28,8 @@ void setup() {
     Serial.print(". ");
   }
   Serial.println("Wifi connected");
+  
+  // connect nodemcu to firebase real time db
   config.api_key = API_KEY;
   config.database_url = DB_URL;
   if(Firebase.signUp(&config,&auth,"","")){
@@ -36,6 +40,8 @@ void setup() {
     Serial.printf("%s\n", config.signer.signupError.message.c_str());
   Firebase.begin(&config,&auth);
   Firebase.reconnectWiFi(true);
+  
+  // testing data push
   for(int i=0;i<5;i++){
     Firebase.RTDB.setInt(&fdbo, "test/int", i);
     delay(500);
@@ -44,15 +50,22 @@ void setup() {
 
 //Pushes data to Firebase RTDB
 void putData(float N, float P, float K, float ph, float temp, float hum) {
-  Firebase.RTDB.setFloat(&fdbo, "main/Nitrogen", N);
-  Firebase.RTDB.setFloat(&fdbo, "main/Phosphorous", P);
-  Firebase.RTDB.setFloat(&fdbo, "main/Potassium", K);
-  Firebase.RTDB.setFloat(&fdbo, "main/pH", ph);
-  Firebase.RTDB.setFloat(&fdbo, "main/Temperature", temp);
-  Firebase.RTDB.setFloat(&fdbo, "main/Humidity", hum);
-  if(!Firebase.RTDB.setBool(&fdbo, "main/isPush", true)){
-    if(isPush < 3)
-      isPush++;
+  try{
+    // try to push data to firebase db
+    Firebase.RTDB.setFloat(&fdbo, "main/Nitrogen", N);
+    Firebase.RTDB.setFloat(&fdbo, "main/Phosphorous", P);
+    Firebase.RTDB.setFloat(&fdbo, "main/Potassium", K);
+    Firebase.RTDB.setFloat(&fdbo, "main/pH", ph);
+    Firebase.RTDB.setFloat(&fdbo, "main/Temperature", temp);
+    Firebase.RTDB.setFloat(&fdbo, "main/Humidity", hum);
+    Firebase.RTDB.setBool(&fdbo, "main/isPush", true);
+  }
+  catch(Exception e){
+    // update ispush to false if push fails 3 times
+    Serial.println(e.toString());
+    if(isPush<3){
+      i++;
+    }
     else{
       isPush = 0;
       Firebase.RTDB.setBool(&fdbo, "main/isPush", false);
@@ -110,4 +123,3 @@ void loop() {
   putData(N,P,K,ph,temp,hum);
   delay(1000);
 }
-
